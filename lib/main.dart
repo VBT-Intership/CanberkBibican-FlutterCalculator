@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'models/math.dart';
 
 void main() {
   runApp(MyApp());
@@ -29,12 +30,55 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String outPut = "0";
+  String outPut = "";
+  List<double> numbers = [];
+  List<String> operations = [];
+
   buttonPressed(String buttonText) {
-    print(buttonText);
-    setState(() {
-      outPut = buttonText;
-    });
+    //operations '+,-,*,/' --> add array lists and clear view
+    if (buttonText == "+" ||
+        buttonText == "-" ||
+        buttonText == "X" ||
+        buttonText == "/") {
+      numbers.add(double.parse(outPut));
+      operations.add(buttonText);
+      print(numbers);
+      print(operations);
+      setState(() {
+        outPut = "";
+      });
+    }
+    //operations 'C' --> calculator reset func
+    else if (buttonText == "C") {
+      setState(() {
+        resetCalculator();
+      });
+    }
+    //operations '=' --> arrays send to calculate function
+    else if (buttonText == "=") {
+      if (outPut != "") {
+        numbers.add(double.parse(outPut));
+      } else {
+        numbers.add(0); // if view empty last enry number default 0
+      }
+      calculate(numbers, operations);
+    }
+    //operations '<-' --> delete the last number in view
+    else if (buttonText == "<-") {
+      removeOutPutLast();
+    }
+    //operations '<-' --> add dot to end of the number in view
+    else if (buttonText == ".") {
+      setState(() {
+        outPut = outPut + ".";
+      });
+    }
+    //non operations update to view
+    else {
+      setState(() {
+        outPut = outPut + buttonText;
+      });
+    }
   }
 
   Widget buildButton(String buttonText) {
@@ -48,6 +92,56 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: () => {buttonPressed(buttonText)},
       ),
     );
+  }
+
+//numbers array and operations array one by one process
+  void calculate(List<double> numbers, List<String> operations) {
+    double firstNum, secondNum;
+    for (int i = 0; i < operations.length; i++) {
+      firstNum = numbers[i];
+      secondNum = numbers[i + 1];
+      print("firstNum : " + firstNum.toString());
+      print("secondNum : " + secondNum.toString());
+      Math math = new Math(firstNum, secondNum);
+      switch (operations[i]) {
+        case "+":
+          numbers[i + 1] = math.addition();
+          break;
+        case "-":
+          numbers[i + 1] = math.subtraction();
+          break;
+        case "X":
+          numbers[i + 1] = math.multiplication();
+          break;
+        case "/":
+          numbers[i + 1] = math.division();
+          break;
+        default:
+      }
+    }
+    setState(() {
+      outPut = numbers.last.toString();
+    });
+    numbers.clear();
+    operations.clear();
+  }
+
+  void resetCalculator() {
+    outPut = "";
+    numbers.clear();
+    operations.clear();
+  }
+
+  void removeOutPutLast() {
+    if (outPut != "") {
+      setState(() {
+        if (outPut.length > 1) {
+          outPut = outPut.substring(0, outPut.length - 1);
+        } else {
+          outPut = "";
+        }
+      });
+    }
   }
 
   @override
@@ -102,7 +196,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   Row(
                     children: [
-                      buildButton("+/-"),
+                      buildButton("<-"),
                       buildButton("0"),
                       buildButton("."),
                       buildButton("+"),
